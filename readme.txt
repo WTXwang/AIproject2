@@ -33,51 +33,49 @@
 
 文件夹结构说明
 --------------
+- output_resnet/
+  - train_curves.png           # 训练过程损失/准确率曲线
+  - predict_samples.png        # 部分预测样例可视化
+  - train_history.csv          # 训练过程详细数据
+  - train_time                 # 训练时间
 - train_model.py       # 模型训练脚本，生成mnist_cnn_model.keras
 - Digit_detector.py    # 手写数字识别主程序，支持GUI和命令行识别
 - requirements.txt     # 依赖包列表
 - README.txt           # 项目说明（本文件）
 - mnist_cnn_model.keras      # 训练好的模型文件
-- train_curves.png           # 训练过程损失/准确率曲线
-- predict_samples.png        # 部分预测样例可视化
-- train_history.csv          # 训练过程详细数据
 
-主要文件功能简介
-----------------
-1. train_model.py
-   - 用于训练手写数字识别模型。
-   - 主要流程：
-     1) 加载MNIST数据集并归一化处理。
-     2) 构建卷积神经网络（多层卷积+全连接层+Dropout）。
-     3) 训练模型并保存为mnist_cnn_model.keras。
-     4) 训练过程中自动保存训练曲线、部分预测样例和详细训练数据。
-   - 适合需要重新训练模型或分析训练过程时使用。
-
-   - 模型结构与参数说明：
-     - 输入：28x28 单通道灰度图像
-     - 网络结构：
-       1. Conv2D(32, kernel_size=3, activation='relu', input_shape=(28,28,1))
-          - 卷积核数：32，卷积核大小：3x3，激活函数：ReLU
-       2. MaxPooling2D()
-          - 池化窗口：2x2，步长：2
-       3. Conv2D(64, kernel_size=3, activation='relu')
-          - 卷积核数：64，卷积核大小：3x3，激活函数：ReLU
-       4. MaxPooling2D()
-          - 池化窗口：2x2，步长：2
-       5. Flatten()
-          - 展平为一维向量
-       6. Dense(128, activation='relu')
-          - 全连接层，神经元数：128，激活函数：ReLU
-       7. Dense(10, activation='softmax')
-          - 输出层，神经元数：10（对应0-9），激活函数：Softmax
-       8. Dropout(0.15)
-          - 随机丢弃15%神经元，防止过拟合
-     - 损失函数：sparse_categorical_crossentropy（适合整数标签的多分类）
-     - 优化器：Adam（自适应学习率，默认参数）
-     - 训练轮数（epochs）：20
-     - 批大小（batch_size）：64
-     - 验证集：MNIST官方测试集
-     - 训练过程自动保存 loss/accuracy 曲线和部分预测样例
+文件功能
+--------
+- train_model.py
+  - 用于训练手写数字识别模型。
+  - 代码逻辑与模型参数详细说明：
+    * 加载MNIST数据集（keras.datasets.mnist），将图片归一化到0-1，并扩展为(样本数, 28, 28, 1)。
+    * 构建卷积神经网络模型，采用ResNet残差网络结构：
+      - 多层残差块堆叠，包含卷积、批归一化、ReLU激活及残差连接，有效缓解深层网络的梯度消失问题，提升模型表达能力。
+      - 主要参数：
+        * 残差块数量：3 个，每个残差块包含 2 层 3x3 卷积（卷积核数分别为 32、64、128），均使用 ReLU 激活和批归一化。
+        * 残差连接：每个残差块输入与输出相加。
+        * 池化层：每个残差块后接 2x2 最大池化。
+        * 全局平均池化：在残差块后进行特征降维。
+        * 全连接层：Dense(128, activation='relu')，Dropout(0.15) 防止过拟合。
+        * 输出层：Dense(10, activation='softmax')，对应 0-9 十个数字类别。
+      - 末端使用全局平均池化和全连接层输出10类（0-9）概率。
+      - 具体结构和参数可参考train_model.py源码及文档后续说明。
+    * 编译模型：
+      - 损失函数：sparse_categorical_crossentropy（适合整数标签的多分类）
+      - 优化器：Adam（自适应学习率，默认参数）
+      - 评估指标：accuracy
+    * 训练模型：
+      - 训练轮数（epochs）：20
+      - 批大小（batch_size）：64
+      - 验证集：MNIST官方测试集
+      - 训练过程中自动保存 loss/accuracy 曲线和部分预测样例。
+    * 保存模型：
+      - 训练完成后，使用 model.save(MODEL_PATH) 保存为 mnist_cnn_model.keras。
+    * 训练过程可视化与记录：
+      - 使用 pandas 保存训练过程 loss/accuracy 到 train_history.csv。
+      - 使用 matplotlib 保存训练曲线（train_curves.png）和部分预测样例（predict_samples.png）。
+    * 适合需要重新训练模型或分析训练过程时使用。
 
 2. Digit_detector.py
    - 手写数字识别主程序。
@@ -87,7 +85,7 @@
         - 若有，则直接加载模型。
      2) 支持两种使用方式：
         - 命令行：传入图片路径，输出识别结果。
-        - GUI：可视化界面，选择图片后自动识别并显示结果。
+        - GUI：可视化界面，选择图片后自动识别并显示结果（预测数字+正确概率）。
      3) 图像预处理与分割说明：
         - 预处理流程：
           a. 灰度化：将图片统一转为灰度图像。
@@ -101,11 +99,13 @@
           b. 对每个数字区域进行紧凑裁剪、缩放、居中处理，生成单个数字的28x28图像。
           c. 默认只识别最左侧的数字（可扩展为多数字识别）。
         - 该流程可显著提升对不同来源、不同背景图片的鲁棒性。
-     4) 支持多数字分割，默认只识别最左侧数字。
+     4) 支持多数字分割，默认只识别概率最高的数字。
 
-3. requirements.txt
-   - 项目所需的全部依赖包列表。
+- requirements.txt
+  - 项目所需的全部依赖包列表。
 
+- dist/readme.txt
+  - 可执行文件和模型的详细使用说明。
 
 注意事项
 --------
