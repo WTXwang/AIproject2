@@ -1,23 +1,45 @@
 项目说明
 ========
-这是一个可以识别简单背景中单个手写数字的小软件，是一个期末作业
+
 本项目为基于卷积神经网络的手写数字识别系统，支持模型训练、图像识别与可视化，适合学习与演示用途。
+
+使用方法（仅含py文件时）
+------------------------
+1. 安装依赖
+   - 请确保已安装 Python 3.7 及以上版本。
+   - 在命令行中运行以下命令安装依赖包：
+     
+     pip install -r requirements.txt
+
+2. 训练模型
+   - 运行以下命令开始训练并生成模型文件（mnist_cnn_model.keras）：
+
+     python train_model.py
+
+3. 手写数字识别
+   - 识别图片中的手写数字，可通过命令行方式：
+     
+     python Digit_detector.py --image 图片路径
+   - 若未检测到模型文件，程序会自动调用训练脚本生成模型。
+   - 也可直接运行：
+     
+     python Digit_detector.py
+   - 若支持GUI，会弹出可视化界面，选择图片后自动识别。
+
+4. 其他说明
+   - 训练过程和识别结果会在当前目录下生成相关文件（如模型、曲线图、预测样例等）。
+   - 如需自定义参数，可修改对应py文件中的相关设置。
 
 文件夹结构说明
 --------------
-- dist/                # 存放所有可直接运行的可执行文件和模型文件
-  - Digit_detector.exe         # 手写数字识别主程序
-  - train_model.exe            # 模型训练程序
-  - mnist_cnn_model.keras      # 训练好的模型文件
-  - train_curves.png           # 训练过程损失/准确率曲线
-  - predict_samples.png        # 部分预测样例可视化
-  - train_history.csv          # 训练过程详细数据
-  - readme.txt                 # dist文件夹使用说明
-
 - train_model.py       # 模型训练脚本，生成mnist_cnn_model.keras
 - Digit_detector.py    # 手写数字识别主程序，支持GUI和命令行识别
 - requirements.txt     # 依赖包列表
 - README.txt           # 项目说明（本文件）
+- mnist_cnn_model.keras      # 训练好的模型文件
+- train_curves.png           # 训练过程损失/准确率曲线
+- predict_samples.png        # 部分预测样例可视化
+- train_history.csv          # 训练过程详细数据
 
 主要文件功能简介
 ----------------
