@@ -1,0 +1,10 @@
+tensorflow
+keras
+opencv-python
+Pillow
+ultralytics
+scikit-image
+scipy
+matplotlib
+numpy
+pandas
